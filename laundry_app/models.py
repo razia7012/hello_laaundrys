@@ -9,3 +9,24 @@ class Service(models.Model):
 
     def __str__(self):
         return self.name
+
+class Country(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class City(models.Model):
+    country = models.ForeignKey(Country, related_name='cities', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ('country', 'name')
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name}, {self.country.name}"
