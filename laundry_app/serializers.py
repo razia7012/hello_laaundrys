@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Service, Country, City
+from .models import Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, OrderItem
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -45,3 +45,77 @@ class LaundryCreateSerializer(serializers.ModelSerializer):
             'rating',
             'is_active'
         ]
+
+class ItemPriceSerializer(serializers.ModelSerializer):
+    item_name = serializers.CharField(source='item.name', read_only=True)
+    item_image = serializers.ImageField(source='item.image', read_only=True)
+
+    class Meta:
+        model = ItemPrice
+        fields = ['id', 'item', 'item_name', 'item_image', 'price']
+
+class ItemSerializer(serializers.ModelSerializer):
+    price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Item
+        fields = ['id', 'name', 'image', 'price']
+
+    def get_price(self, obj):
+        laundry_id = self.context.get("laundry_id")
+        try:
+            item_price = ItemPrice.objects.get(laundry_id=laundry_id, item=obj)
+            return item_price.price
+        except ItemPrice.DoesNotExist:
+            return None
+
+class CategorySerializer(serializers.ModelSerializer):
+    items = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'icon', 'items']
+
+    def get_items(self, obj):
+        laundry_id = self.context.get("laundry_id")
+        items = obj.items.all()
+        return ItemSerializer(items, many=True, context={"laundry_id": laundry_id}).data
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    service_name = serializers.CharField(source="service.name", read_only=True)
+    price = serializers.DecimalField(source="service.starting_price", read_only=True,
+                                     max_digits=8, decimal_places=2)
+
+    class Meta:
+        model = CartItem
+        fields = ["id", "service", "service_name", "price", "quantity", "cart"]
+        extra_kwargs = {
+            "cart": {"write_only": True}
+        }
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+    total_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Cart
+        fields = ["id", "user", "laundry", "is_active", "items", "total_price"]
+
+    def get_total_price(self, obj):
+        return obj.total_price()
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    item_name = serializers.CharField(source='item_price.item.name', read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ["id", "item_name", "quantity", "price"]
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ["id", "user", "laundry", "status", "total_price", "items", "created_at"]
+        

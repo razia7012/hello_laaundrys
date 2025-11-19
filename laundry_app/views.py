@@ -1,6 +1,6 @@
 from rest_framework import generics
-from .models import Service, Country
-from .serializers import ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer
+from .models import Service, Country, Cart, CartItem
+from .serializers import ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, CartItemSerializer
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -38,3 +38,115 @@ class LaundryCreateView(generics.CreateAPIView):
     queryset = Laundry.objects.all()
     serializer_class = LaundryCreateSerializer
     permission_classes = [IsAuthenticated]
+
+class AddToCartView(APIView):
+    def post(self, request):
+        user = request.user
+        laundry_id = request.data.get("laundry")
+        service_id = request.data.get("service")
+        quantity = int(request.data.get("quantity", 1))
+
+        try:
+            service = Service.objects.get(id=service_id)
+        except Service.DoesNotExist:
+            return Response({"error": "Service not found"}, status=404)
+
+        cart, created = Cart.objects.get_or_create(
+            user=user,
+            laundry_id=laundry_id,
+            is_active=True
+        )
+
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            service=service,
+            defaults={"quantity": quantity}
+        )
+
+        if not created:
+            cart_item.quantity += quantity
+            cart_item.save()
+
+        return Response({
+            "message": "Item added to cart",
+            "cart": CartSerializer(cart).data
+        })
+
+class LaundryItemListView(APIView):
+    def get(self, request, laundry_id):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True, context={"laundry_id": laundry_id})
+        return Response(serializer.data)
+
+class PlaceOrderView(APIView):
+    def post(self, request):
+        user = request.user
+
+        try:
+            cart = Cart.objects.get(user=user, is_active=True)
+        except Cart.DoesNotExist:
+            return Response({"error": "No active cart found"}, status=400)
+
+        order = Order.objects.create(
+            user=user,
+            laundry=cart.laundry,
+            status="pending",
+            payment_status="pending"
+        )
+
+        total = 0
+
+        for cart_item in cart.items.all():
+            order_item = OrderItem.objects.create(
+                order=order,
+                item_price=cart_item.item_price,
+                quantity=cart_item.quantity,
+                price=cart_item.item_price.price
+            )
+            total += order_item.subtotal()
+
+        order.total_price = total
+        order.save()
+
+        cart.is_active = False
+        cart.save()
+
+        return Response({
+            "message": "Order placed successfully",
+            "order_id": order.id
+        }, status=201)
+
+class UpdateOrderStatusView(APIView):
+    def post(self, request, order_id):
+        status_to_update = request.data.get("status")
+
+        if status_to_update not in dict(ORDER_STATUS):
+            return Response({"error": "Invalid status"}, status=400)
+
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=404)
+
+        order.status = status_to_update
+        order.save()
+
+        return Response({"message": "Order status updated"})
+
+
+class UpdatePaymentStatusView(APIView):
+    def post(self, request, order_id):
+        new_status = request.data.get("payment_status")
+
+        if new_status not in dict(PAYMENT_STATUS):
+            return Response({"error": "Invalid payment status"}, status=400)
+
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=404)
+
+        order.payment_status = new_status
+        order.save()
+
+        return Response({"message": "Payment status updated successfully"})

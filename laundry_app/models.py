@@ -1,5 +1,20 @@
 from django.db import models
 
+ORDER_STATUS = (
+    ("pending", "Pending"),
+    ("accepted", "Accepted"),
+    ("processing", "Processing"),
+    ("completed", "Completed"),
+    ("cancelled", "Cancelled"),
+)
+
+PAYMENT_STATUS = (
+    ("pending", "Pending"),
+    ("paid", "Paid"),
+    ("failed", "Failed"),
+    ("refunded", "Refunded"),
+)
+
 
 class Service(models.Model):
     laundry = models.ForeignKey('Laundry', related_name='services', on_delete=models.CASCADE)
@@ -32,6 +47,28 @@ class City(models.Model):
     def __str__(self):
         return f"{self.name}, {self.country.name}"
 
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    icon = models.ImageField(upload_to='category_icons/', blank=True, null=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+class Item(models.Model):
+    category = models.ForeignKey(Category, related_name='items', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='item_images/', blank=True, null=True)
+
+    class Meta:
+        unique_together = ('category', 'name')
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.category.name})"
+
 class Laundry(models.Model):
     name = models.CharField(max_length=150)
     city = models.ForeignKey(City, related_name='laundries', on_delete=models.CASCADE)
@@ -49,9 +86,22 @@ class Laundry(models.Model):
     def __str__(self):
         return f"{self.name} - {self.city.name}"
 
+class ItemPrice(models.Model):
+    laundry = models.ForeignKey('Laundry', related_name='item_prices', on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, related_name='prices', on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+
+    class Meta:
+        unique_together = ('laundry', 'item')
+
+    def __str__(self):
+        return f"{self.item.name} - {self.price} ({self.laundry.name})"
+
+
 class Cart(models.Model):
     user = models.ForeignKey(User, related_name='carts', on_delete=models.CASCADE)
     laundry = models.ForeignKey('Laundry', related_name='carts', on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, related_name='cart_items', on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -64,14 +114,37 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
-    service = models.ForeignKey(Service, related_name='cart_items', on_delete=models.CASCADE)
+    item_price = models.ForeignKey(ItemPrice, related_name='cart_items', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
 
     class Meta:
-        unique_together = ('cart', 'service')
+        unique_together = ('cart', 'item_price')
 
     def subtotal(self):
-        return self.service.price * self.quantity
+        return self.item_price.price * self.quantity
 
     def __str__(self):
-        return f"{self.service.name} x {self.quantity}"
+        return f"{self.item_price.item.name} x {self.quantity}"
+
+class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
+    laundry = models.ForeignKey(Laundry, on_delete=models.CASCADE, related_name="orders")
+    status = models.CharField(max_length=20, choices=ORDER_STATUS, default="pending")
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default="pending")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Order #{self.id} - {self.user} - {self.status}"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    item_price = models.ForeignKey(ItemPrice, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+
+    def subtotal(self):
+        return self.price * self.quantity
+
+    def __str__(self):
+        return f"{self.item_price.item.name} x {self.quantity}"
