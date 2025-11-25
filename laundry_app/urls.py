@@ -1,15 +1,15 @@
 from django.urls import path
-from .views import as laundry_app_views
+from . import views
 
 urlpatterns = [
- path('services/', laundry_app_views.ServiceListAPIView.as_view(), name='service-list'),
- path('locations/', laundry_app_views.LocationListView.as_view(), name='locations'),
- path('laundries/', laundry_app_views.LaundryListByCityView.as_view(), name='laundry-list-by-city'),
- path('laundries/', LaundryCreateView.as_view(), name='create-laundry'),
- path("add/", laundry_app_views.AddToCartView.as_view(), name="add-to-cart"),
- path('laundry/<int:laundry_id>/items/', laundry_app_views.LaundryItemListView.as_view(), name='laundry-items'),
- path('order/place/', laundry_app_views.PlaceOrderView.as_view(), name='place-order'),
- path('order/<int:order_id>/status/', laundry_app_views.UpdateOrderStatusView.as_view(), name='update-order-status'),
- path('order/<int:order_id>/payment-status/', laundry_app_views.UpdatePaymentStatusView.as_view(), name='update-payment-status'),
+ path('services/', views.ServiceListAPIView.as_view(), name='service-list'),
+ path('locations/', views.LocationListView.as_view(), name='locations'),
+ path('laundries/', views.LaundryListByCityView.as_view(), name='laundry-list-by-city'),
+ path('create-laundry/', views.LaundryCreateView.as_view(), name='create-laundry'),
+ path("add/", views.AddToCartView.as_view(), name="add-to-cart"),
+ path('laundry/<int:laundry_id>/items/', views.LaundryItemListView.as_view(), name='laundry-items'),
+ path('order/place/', views.PlaceOrderView.as_view(), name='place-order'),
+ path('order/<int:order_id>/status/', views.UpdateOrderStatusView.as_view(), name='update-order-status'),
+ path('order/<int:order_id>/payment-status/', views.UpdatePaymentStatusView.as_view(), name='update-payment-status'),
 
 ]

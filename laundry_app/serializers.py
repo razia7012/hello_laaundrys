@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, OrderItem
+from .models import Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, OrderItem, Laundry, Category
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:

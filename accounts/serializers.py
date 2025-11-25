@@ -2,8 +2,8 @@ from rest_framework import serializers
 from .models import User
 
 class SendOTPSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=False)
-    mobile = serializers.CharField(required=False)
+    mobile = serializers.CharField(required=True)
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
 
     def validate(self, attrs):
         if not attrs.get("email") and not attrs.get("mobile"):
@@ -12,9 +12,9 @@ class SendOTPSerializer(serializers.Serializer):
 
 
 class VerifyOTPSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=False)
-    mobile = serializers.CharField(required=False)
-    otp = serializers.CharField(max_length=4)
+    mobile = serializers.CharField(required=True)
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+    otp = serializers.CharField(required=True)
 
     def validate(self, attrs):
         if not attrs.get("email") and not attrs.get("mobile"):
