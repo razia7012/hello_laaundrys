@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.sqlite3
+.env
+hello_laundry/ # if this is venv
+staticfiles/   # optional

@@ -1,0 +1,1 @@
+web: gunicorn hello_laundry_apis.wsgi:application --bind 0.0.0.0:$PORT
