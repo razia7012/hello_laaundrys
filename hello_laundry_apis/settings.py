@@ -92,15 +92,24 @@ WSGI_APPLICATION = 'hello_laundry_apis.wsgi.application'
 #     }
 # }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'laundry_db',
+#         'USER': 'postgres',
+#         'PASSWORD': 'postgres',
+#         'HOST': '127.0.0.1',
+#         'PORT': '5432',
+#     }
+# }
+
+#staging
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'laundry_db',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
+    "default": dj_database_url.config(
+        default="sqlite:///db.sqlite3",
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 
