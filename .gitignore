@@ -1,6 +1,20 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# virtualenv
+venv/
+.venv/
+hello_laundry/   # if your venv folder named hello_laundry
+
+# Django
 *.sqlite3
+media/
+staticfiles/
+
+# Env / secrets
 .env
-hello_laundry/ # if this is venv
-staticfiles/   # optional
+.env.local
+
