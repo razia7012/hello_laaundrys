@@ -29,12 +29,16 @@ class Service(models.Model):
 
 class Country(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    country_code = models.CharField(max_length=5, unique=True)  
+    currency_name = models.CharField(max_length=50)             
+    currency_code = models.CharField(max_length=10)             
+    currency_symbol = models.CharField(max_length=5, blank=True, null=True)  
 
     class Meta:
         ordering = ["name"]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.country_code})"
 
 
 class City(models.Model):

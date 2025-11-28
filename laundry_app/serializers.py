@@ -17,7 +17,15 @@ class CountryWithCitiesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
-        fields = ['id', 'name', 'cities']
+        fields = [
+            'id',
+            'name',
+            'country_code',
+            'currency_name',
+            'currency_code',
+            'currency_symbol',
+            'cities',
+        ]
 
 class LaundrySerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.name', read_only=True)
