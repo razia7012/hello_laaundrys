@@ -3,12 +3,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from .models import User
+from .models import OTP
 from .serializers import SendOTPSerializer, VerifyOTPSerializer
 from .utils import generate_otp, send_otp, store_otp
 from django.core.cache import cache
 from rest_framework.permissions import AllowAny
 from rest_framework.generics import GenericAPIView
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 class SendOTPView(GenericAPIView):
@@ -20,7 +22,7 @@ class SendOTPView(GenericAPIView):
         if serializer.is_valid():
             email = serializer.validated_data.get("email")
             mobile = serializer.validated_data.get("mobile")
-            contact = email or mobile
+            contact = mobile
             otp = generate_otp()
             send_otp(contact, otp)
             store_otp(contact, otp)
@@ -45,24 +47,27 @@ class VerifyOTPView(GenericAPIView):
             email = serializer.validated_data.get("email")
             otp = serializer.validated_data["otp"]
 
-            # OTP is always tied to mobile
-            cached_otp = cache.get(f"otp_{mobile}")
-            if cached_otp != otp:
+            # cached_otp = cache.get(f"otp_{mobile}")
+            cached_otp = OTP.objects.filter(contact=mobile).order_by('-created_at').first()
+            
+            if not cached_otp or cached_otp.otp != otp or cached_otp.is_expired():
                 return Response({
                     "success": False,
                     "message": "Invalid or expired OTP."
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Create/find user using mobile
-            user, _ = User.objects.get_or_create(mobile=mobile)
+            user = User.objects.filter(mobile=mobile).first()
 
-            # Update email only if provided
-            if email and not user.email:
-                user.email = email
-                user.save()
-
+            if not user:
+                # If email is provided, check if a user with that email exists
+                if email:
+                    user = User.objects.filter(email=email).first()
+                if not user:
+                    # Create new user
+                    user = User.objects.create_user(email=email, mobile=mobile)
             token, _ = Token.objects.get_or_create(user=user)
-            cache.delete(f"otp_{mobile}")
+            # cache.delete(f"otp_{mobile}")
+            cached_otp.delete()
 
             return Response({
                 "success": True,

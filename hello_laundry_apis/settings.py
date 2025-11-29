@@ -175,3 +175,5 @@ SWAGGER_SETTINGS = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True  # tighten later
+# settings.py
+AUTH_USER_MODEL = "accounts.User"
