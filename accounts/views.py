@@ -68,7 +68,7 @@ class VerifyOTPView(GenericAPIView):
             except Exception as ex:
                 return Response({
                     "success": False,
-                    "message": ex
+                    "message": str(ex)
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             try:
@@ -76,9 +76,9 @@ class VerifyOTPView(GenericAPIView):
             except Exception as ex:
                 return Response({
                     "success": False,
-                    "message": ex
+                    "message": str(ex)
                 }, status=status.HTTP_400_BAD_REQUEST)
-                
+
             # cache.delete(f"otp_{mobile}")
             cached_otp.delete()
 
