@@ -55,17 +55,30 @@ class VerifyOTPView(GenericAPIView):
                     "success": False,
                     "message": "Invalid or expired OTP."
                 }, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                user = User.objects.filter(mobile=mobile).first()
 
-            user = User.objects.filter(mobile=mobile).first()
-
-            if not user:
-                # If email is provided, check if a user with that email exists
-                if email:
-                    user = User.objects.filter(email=email).first()
                 if not user:
-                    # Create new user
-                    user = User.objects.create_user(email=email, mobile=mobile)
-            token, _ = Token.objects.get_or_create(user=user)
+                    # If email is provided, check if a user with that email exists
+                    if email:
+                        user = User.objects.filter(email=email).first()
+                    if not user:
+                        # Create new user
+                        user = User.objects.create_user(email=email, mobile=mobile)
+            except Exception as ex:
+                return Response({
+                    "success": False,
+                    "message": ex
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                token, _ = Token.objects.get_or_create(user=user)
+            except Exception as ex:
+                return Response({
+                    "success": False,
+                    "message": ex
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
             # cache.delete(f"otp_{mobile}")
             cached_otp.delete()
 
