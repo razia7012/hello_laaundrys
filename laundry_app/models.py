@@ -18,7 +18,6 @@ PAYMENT_STATUS = (
 
 
 class Service(models.Model):
-    laundry = models.ForeignKey('Laundry', related_name='services', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     starting_price = models.DecimalField(max_digits=8, decimal_places=2)
@@ -83,6 +82,7 @@ class Laundry(models.Model):
     opening_hours = models.CharField(max_length=100, blank=True, null=True)
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     is_active = models.BooleanField(default=True)
+    services = models.ManyToManyField(Service, related_name="laundries")  # ← NEW
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -90,6 +90,7 @@ class Laundry(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.city.name}"
+
 
 class ItemPrice(models.Model):
     laundry = models.ForeignKey('Laundry', related_name='item_prices', on_delete=models.CASCADE)
