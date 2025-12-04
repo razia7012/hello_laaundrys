@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class ServiceListAPIView(generics.ListAPIView):
@@ -31,11 +33,22 @@ class LocationListView(generics.GenericAPIView):
 class LaundryListByCityView(generics.ListAPIView):
     serializer_class = LaundrySerializer
 
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter(
+            'city',
+            openapi.IN_QUERY,
+            description="Filter laundries by city name",
+            type=openapi.TYPE_STRING
+        )
+    ])
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
     def get_queryset(self):
         city_name = self.request.query_params.get('city')
         if city_name:
-            return Laundry.objects.filter(city__name__iexact=city_name, is_active=True)
-        return Laundry.objects.none()
+            return Laundry.objects.filter(city__name__icontains=city_name, is_active=True)
+        return Laundry.objects.all()
 
 class LaundryCreateView(generics.CreateAPIView):
     queryset = Laundry.objects.all()

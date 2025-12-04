@@ -31,13 +31,26 @@ class LaundrySerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.name', read_only=True)
     country_name = serializers.CharField(source='city.country.name', read_only=True)
 
+    service_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Service.objects.all(),
+        many=True,
+        source="services",
+        write_only=True,
+        required=False
+    )
+
+    services = serializers.StringRelatedField(many=True, read_only=True)
+
     class Meta:
         model = Laundry
         fields = [
-            'id', 'name', 'city_name', 'country_name',
+            'id', 'name',
+            'city', 'city_name', 'country_name',
             'address', 'contact_number', 'email',
-            'opening_hours', 'rating', 'is_active'
+            'opening_hours', 'rating', 'is_active',
+            'services', 'service_ids', 'created_at'
         ]
+
 
 class LaundryCreateSerializer(serializers.ModelSerializer):
     class Meta:
