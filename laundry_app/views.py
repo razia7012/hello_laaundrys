@@ -1,8 +1,7 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from .models import Service, Country, Cart, CartItem, Laundry
 from .serializers import ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, CartItemSerializer, LaundryCreateSerializer
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
@@ -15,6 +14,17 @@ class ServiceListAPIView(generics.ListAPIView):
 
 class LocationListView(generics.GenericAPIView):
     serializer_class = CountryWithCitiesSerializer
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'country',  
+                openapi.IN_QUERY,  
+                description="Filter by country name",
+                type=openapi.TYPE_STRING  
+            )
+        ]
+    )
 
     def get(self, request):
         country_name = request.query_params.get('country')
