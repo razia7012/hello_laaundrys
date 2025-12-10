@@ -99,8 +99,22 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def get_items(self, obj):
         laundry_id = self.context.get("laundry_id")
-        items = obj.items.all()
-        return ItemSerializer(items, many=True, context={"laundry_id": laundry_id}).data
+
+        item_prices = ItemPrice.objects.filter(
+            laundry_id=laundry_id,
+            item__category=obj
+        ).select_related("item")
+
+        return [
+            {
+                "id": ip.item.id,
+                "name": ip.item.name,
+                "image": ip.item.image.url if ip.item.image else None,
+                "price": ip.price,
+            }
+            for ip in item_prices
+        ]
+
 
 
 class CartItemSerializer(serializers.ModelSerializer):

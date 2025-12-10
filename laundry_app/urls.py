@@ -11,5 +11,4 @@ urlpatterns = [
  path('order/place/', views.PlaceOrderView.as_view(), name='place-order'),
  path('order/<int:order_id>/status/', views.UpdateOrderStatusView.as_view(), name='update-order-status'),
  path('order/<int:order_id>/payment-status/', views.UpdatePaymentStatusView.as_view(), name='update-payment-status'),
-
 ]

@@ -1,18 +1,22 @@
 from rest_framework import generics, status
-from .models import Service, Country, Cart, CartItem, Laundry
-from .serializers import ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, CartItemSerializer, LaundryCreateSerializer
+from .models import Service, Country, Cart, CartItem, Laundry, Category
+from .serializers import (ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, 
+    CartItemSerializer, LaundryCreateSerializer, CategorySerializer)
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from .pagination import StandardResultsSetPagination
 
 
 class ServiceListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Service.objects.filter(is_active=True)
     serializer_class = ServiceSerializer
 
 class LocationListView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
     serializer_class = CountryWithCitiesSerializer
 
     @swagger_auto_schema(
@@ -42,6 +46,8 @@ class LocationListView(generics.GenericAPIView):
 
 class LaundryListByCityView(generics.ListAPIView):
     serializer_class = LaundrySerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter(
@@ -61,11 +67,14 @@ class LaundryListByCityView(generics.ListAPIView):
         return Laundry.objects.all()
 
 class LaundryCreateView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Laundry.objects.all()
     serializer_class = LaundryCreateSerializer
     permission_classes = [IsAuthenticated]
 
 class AddToCartView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         user = request.user
         laundry_id = request.data.get("laundry")
@@ -99,12 +108,16 @@ class AddToCartView(APIView):
         })
 
 class LaundryItemListView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, laundry_id):
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True, context={"laundry_id": laundry_id})
         return Response(serializer.data)
 
 class PlaceOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         user = request.user
 
@@ -143,6 +156,8 @@ class PlaceOrderView(APIView):
         }, status=201)
 
 class UpdateOrderStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, order_id):
         status_to_update = request.data.get("status")
 
@@ -161,6 +176,8 @@ class UpdateOrderStatusView(APIView):
 
 
 class UpdatePaymentStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, order_id):
         new_status = request.data.get("payment_status")
 
