@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from .models import Service, Country, Cart, CartItem, Laundry, Category
 from .serializers import (ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, 
-    CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer)
+    CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer, ItemWithPriceSerializer)
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
@@ -209,3 +209,58 @@ class CategoryListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Category.objects.all()
     serializer_class = CategoryListSerializer
+
+class ItemsByCategoryWithPriceView(generics.ListAPIView):
+    serializer_class = ItemWithPriceSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "category_id",
+                openapi.IN_QUERY,
+                description="Category ID",
+                type=openapi.TYPE_INTEGER,
+                required=False,
+            ),
+            openapi.Parameter(
+                "category_name",
+                openapi.IN_QUERY,
+                description="Category name (case-insensitive)",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+            openapi.Parameter(
+                "laundry_id",
+                openapi.IN_QUERY,
+                description="Laundry ID to fetch item prices",
+                type=openapi.TYPE_INTEGER,
+                required=True,
+            ),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        category_id = self.request.query_params.get("category_id")
+        category_name = self.request.query_params.get("category_name")
+
+        queryset = Item.objects.all()
+
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+
+        elif category_name:
+            queryset = queryset.filter(category__name__iexact=category_name)
+
+        else:
+            return Item.objects.none()
+
+        return queryset.prefetch_related("prices")
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["laundry_id"] = self.request.query_params.get("laundry_id")
+        return context

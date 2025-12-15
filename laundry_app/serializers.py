@@ -158,3 +158,29 @@ class CategoryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name']
+
+class CategoryItemPriceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemPrice
+        fields = ["price"]
+
+class ItemWithPriceSerializer(serializers.ModelSerializer):
+    price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Item
+        fields = [
+            "id",
+            "name",
+            "image",
+            "price",
+        ]
+
+    def get_price(self, obj):
+        laundry_id = self.context.get("laundry_id")
+        if not laundry_id:
+            return None
+
+        price_obj = obj.prices.filter(laundry_id=laundry_id).first()
+        return price_obj.price if price_obj else None
+        
