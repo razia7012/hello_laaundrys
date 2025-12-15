@@ -1,9 +1,10 @@
 from rest_framework import generics, status
 from .models import Service, Country, Cart, CartItem, Laundry, Category
 from .serializers import (ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, 
-    CartItemSerializer, LaundryCreateSerializer, CategorySerializer)
+    CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer)
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -11,11 +12,13 @@ from .pagination import StandardResultsSetPagination
 
 
 class ServiceListAPIView(generics.ListAPIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Service.objects.filter(is_active=True)
     serializer_class = ServiceSerializer
 
 class LocationListView(generics.GenericAPIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [AllowAny]
     serializer_class = CountryWithCitiesSerializer
 
@@ -45,6 +48,7 @@ class LocationListView(generics.GenericAPIView):
             return Response(serializer.data)
 
 class LaundryListByCityView(generics.ListAPIView):
+    authentication_classes = [TokenAuthentication]
     serializer_class = LaundrySerializer
     pagination_class = StandardResultsSetPagination
     permission_classes = [IsAuthenticated]
@@ -67,12 +71,14 @@ class LaundryListByCityView(generics.ListAPIView):
         return Laundry.objects.all()
 
 class LaundryCreateView(generics.CreateAPIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Laundry.objects.all()
     serializer_class = LaundryCreateSerializer
     permission_classes = [IsAuthenticated]
 
 class AddToCartView(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -116,6 +122,7 @@ class LaundryItemListView(APIView):
         return Response(serializer.data)
 
 class PlaceOrderView(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -156,6 +163,7 @@ class PlaceOrderView(APIView):
         }, status=201)
 
 class UpdateOrderStatusView(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, order_id):
@@ -176,6 +184,7 @@ class UpdateOrderStatusView(APIView):
 
 
 class UpdatePaymentStatusView(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, order_id):
@@ -193,3 +202,10 @@ class UpdatePaymentStatusView(APIView):
         order.save()
 
         return Response({"message": "Payment status updated successfully"})
+
+
+class CategoryListView(generics.ListAPIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = Category.objects.all()
+    serializer_class = CategoryListSerializer

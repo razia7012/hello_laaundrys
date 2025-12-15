@@ -22,8 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure--ztew54(_gol(0m*9=!_h63wfboq1!sqfg!x*433oj(7(tep7f'
-SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key")
+SECRET_KEY = 'django-insecure--ztew54(_gol(0m*9=!_h63wfboq1!sqfg!x*433oj(7(tep7f'
+# SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = os.environ.get("DEBUG", "False") == "True"
@@ -162,15 +162,18 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
-        "Bearer": {
+        "Token": {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header",
-            "description": "Enter: Bearer <token>"
+            "description": "Enter: Token <your_token>"
         }
     }
 }

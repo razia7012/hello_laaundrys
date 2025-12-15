@@ -5,6 +5,7 @@ urlpatterns = [
  path('services/', views.ServiceListAPIView.as_view(), name='service-list'),
  path('locations/', views.LocationListView.as_view(), name='locations'),
  path('laundries/', views.LaundryListByCityView.as_view(), name='laundry-list-by-city'),
+ path('categories/', views.CategoryListView.as_view(), name='category-list'),
  path('create-laundry/', views.LaundryCreateView.as_view(), name='create-laundry'),
  path("add/", views.AddToCartView.as_view(), name="add-to-cart"),
  path('laundry/<int:laundry_id>/items/', views.LaundryItemListView.as_view(), name='laundry-items'),
