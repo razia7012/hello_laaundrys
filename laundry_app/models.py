@@ -75,6 +75,20 @@ class Item(models.Model):
 
 class Laundry(models.Model):
     name = models.CharField(max_length=150)
+    image = models.ImageField(upload_to="laundry_images/", blank=True, null=True)
+    offer_text = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Eg: 20% OFF on first order"
+    )
+    starting_price = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        help_text="Starting price from"
+    )
     city = models.ForeignKey(City, related_name='laundries', on_delete=models.CASCADE)
     address = models.CharField(max_length=255, blank=True, null=True)
     contact_number = models.CharField(max_length=20, blank=True, null=True)

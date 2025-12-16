@@ -31,41 +31,56 @@ class LaundrySerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.name', read_only=True)
     country_name = serializers.CharField(source='city.country.name', read_only=True)
 
-    service_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Service.objects.all(),
-        many=True,
-        source="services",
-        write_only=True,
-        required=False
-    )
-
     services = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Laundry
         fields = [
-            'id', 'name',
-            'city', 'city_name', 'country_name',
-            'address', 'contact_number', 'email',
-            'opening_hours', 'rating', 'is_active',
-            'services', 'service_ids', 'created_at'
+            'id',
+            'name',
+            'image',                 
+            'city',
+            'city_name',
+            'country_name',
+            'address',
+            'contact_number',
+            'email',
+            'opening_hours',
+            'rating',
+            'offer_text',            
+            'starting_price',        
+            'is_active',
+            'services',
+            'created_at',
         ]
 
 
 class LaundryCreateSerializer(serializers.ModelSerializer):
+    service_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Service.objects.all(),
+        many=True,
+        source="services",
+        required=False
+    )
+
     class Meta:
         model = Laundry
         fields = [
             'id',
             'name',
+            'image',              
             'city',
             'address',
             'contact_number',
             'email',
             'opening_hours',
             'rating',
-            'is_active'
+            'offer_text',        
+            'starting_price',     
+            'is_active',
+            'service_ids',
         ]
+
 
 class ItemPriceSerializer(serializers.ModelSerializer):
     item_name = serializers.CharField(source='item.name', read_only=True)
