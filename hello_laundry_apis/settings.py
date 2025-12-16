@@ -181,3 +181,5 @@ SWAGGER_SETTINGS = {
 CORS_ALLOW_ALL_ORIGINS = True  # tighten later
 # settings.py
 AUTH_USER_MODEL = "accounts.User"
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
