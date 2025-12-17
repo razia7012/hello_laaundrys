@@ -16,4 +16,5 @@ urlpatterns = [
  path("api/customer/addresses", views.CustomerAddressListCreateView.as_view()),
  path("api/customer/addresses/<int:pk>", views.CustomerAddressDetailView.as_view()),
  path("api/customer/addresses/<int:pk>/set-default", views.SetDefaultAddressView.as_view()),
+ path("api/languages", views.LanguageListView.as_view(), name="language-list"),
 ]

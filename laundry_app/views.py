@@ -1,7 +1,8 @@
 from rest_framework import generics, status
-from .models import Service, Country, Cart, CartItem, Laundry, Category, CustomerAddress
+from .models import Service, Country, Cart, CartItem, Laundry, Category, CustomerAddress, Language
 from .serializers import (ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, 
-    CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer, ItemWithPriceSerializer, CustomerAddressSerializer)
+    CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer, ItemWithPriceSerializer, CustomerAddressSerializer,
+    LanguageSerializer)
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
@@ -9,6 +10,14 @@ from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .pagination import StandardResultsSetPagination
+
+class LanguageListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    serializer_class = LanguageSerializer
+
+    def get_queryset(self):
+        return Language.objects.filter(is_active=True)
 
 class CustomerAddressListCreateView(generics.ListCreateAPIView):
     serializer_class = CustomerAddressSerializer
@@ -20,15 +29,15 @@ class CustomerAddressListCreateView(generics.ListCreateAPIView):
 
 class CustomerAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CustomerAddressSerializer
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def get_queryset(self):
         return CustomerAddress.objects.filter(user=self.request.user)
 
 class SetDefaultAddressView(APIView):
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def post(self, request, pk):
         try:

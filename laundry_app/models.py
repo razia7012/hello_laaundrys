@@ -16,6 +16,17 @@ PAYMENT_STATUS = (
     ("refunded", "Refunded"),
 )
 
+class Language(models.Model):
+    name = models.CharField(max_length=50)          
+    code = models.CharField(max_length=10, unique=True)  
+    is_rtl = models.BooleanField(default=False)      
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
 
 class Service(models.Model):
     name = models.CharField(max_length=100)
@@ -209,4 +220,3 @@ class CustomerAddress(models.Model):
 
     def __str__(self):
         return f"{self.country} - {self.city}"
-        

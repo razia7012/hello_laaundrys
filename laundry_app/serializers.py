@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, OrderItem, Laundry, Category, CustomerAddress
+from .models import Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, OrderItem, Laundry, Category, CustomerAddress, Language
 
 GCC_COUNTRIES = [
     "UAE",
@@ -259,4 +259,8 @@ class ItemWithPriceSerializer(serializers.ModelSerializer):
 
         price_obj = obj.prices.filter(laundry_id=laundry_id).first()
         return price_obj.price if price_obj else None
-        
+
+class LanguageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Language
+        fields = ["id", "name", "code", "is_rtl"]
