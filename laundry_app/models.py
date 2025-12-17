@@ -30,6 +30,11 @@ class Language(models.Model):
 
 class Service(models.Model):
     name = models.CharField(max_length=100)
+    image = models.ImageField(
+        upload_to="service_images/",
+        blank=True,
+        null=True
+    )
     description = models.TextField(blank=True, null=True)
     starting_price = models.DecimalField(max_digits=8, decimal_places=2)
     is_active = models.BooleanField(default=True)
