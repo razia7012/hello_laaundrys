@@ -225,3 +225,23 @@ class CustomerAddress(models.Model):
 
     def __str__(self):
         return f"{self.country} - {self.city}"
+
+class SupportContact(models.Model):
+    country = models.OneToOneField(
+        Country,
+        related_name="support_contact",
+        on_delete=models.CASCADE
+    )
+
+    support_phone = models.CharField(max_length=20)
+    support_email = models.EmailField()
+
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["country__name"]
+
+    def __str__(self):
+        return f"{self.country.name} Support"
+        

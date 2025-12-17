@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, OrderItem, Laundry, Category, CustomerAddress, Language
+from .models import (Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, 
+    OrderItem, Laundry, Category, CustomerAddress, Language, SupportContact)
 
 GCC_COUNTRIES = [
     "UAE",
@@ -264,3 +265,24 @@ class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
         fields = ["id", "name", "code", "is_rtl"]
+
+class SupportContactSerializer(serializers.ModelSerializer):
+    country = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SupportContact
+        fields = [
+            "country",
+            "support_phone",
+            "support_email"
+        ]
+
+    def get_country(self, obj):
+        return {
+            "id": obj.country.id,
+            "name": obj.country.name,
+            "country_code": obj.country.country_code,
+            "currency_code": obj.country.currency_code,
+            "currency_symbol": obj.country.currency_symbol
+        }
+        

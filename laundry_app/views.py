@@ -1,8 +1,8 @@
 from rest_framework import generics, status
-from .models import Service, Country, Cart, CartItem, Laundry, Category, CustomerAddress, Language
+from .models import Service, Country, Cart, CartItem, Laundry, Category, CustomerAddress, Language, SupportContact
 from .serializers import (ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, 
     CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer, ItemWithPriceSerializer, CustomerAddressSerializer,
-    LanguageSerializer)
+    LanguageSerializer, SupportContactSerializer)
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
@@ -125,7 +125,6 @@ class LaundryCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Laundry.objects.all()
     serializer_class = LaundryCreateSerializer
-    permission_classes = [IsAuthenticated]
 
 class AddToCartView(APIView):
     authentication_classes = [TokenAuthentication]
@@ -165,6 +164,7 @@ class AddToCartView(APIView):
 
 class LaundryItemListView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
 
     def get(self, request, laundry_id):
         categories = Category.objects.all()
@@ -253,7 +253,6 @@ class UpdatePaymentStatusView(APIView):
 
         return Response({"message": "Payment status updated successfully"})
 
-
 class CategoryListView(generics.ListAPIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -314,3 +313,45 @@ class ItemsByCategoryWithPriceView(generics.ListAPIView):
         context = super().get_serializer_context()
         context["laundry_id"] = self.request.query_params.get("laundry_id")
         return context
+
+class SupportContactView(APIView):
+    """
+    Get support contact based on country NAME
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "country_name",
+                openapi.IN_QUERY,
+                description="Country name (case-insensitive)",
+                type=openapi.TYPE_STRING,
+                required=True,
+            ),
+        ]
+    )
+    def get(self, request):
+        country_name = request.query_params.get("country")
+
+        if not country_name:
+            return Response(
+                {"message": "country parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            support = SupportContact.objects.select_related("country").get(
+                country__name__iexact=country_name,
+                is_active=True
+            )
+        except SupportContact.DoesNotExist:
+            return Response(
+                {"message": "Support contact not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = SupportContactSerializer(support)
+        return Response(serializer.data, status=status.HTTP_200_OK)
