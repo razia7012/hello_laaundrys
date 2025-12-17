@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from .models import OTP
-from .serializers import SendOTPSerializer, VerifyOTPSerializer
+from .serializers import SendOTPSerializer, VerifyOTPSerializer, SetNameSerializer
 from .utils import generate_otp, send_otp, store_otp
 from django.core.cache import cache
 from rest_framework.permissions import AllowAny
@@ -94,3 +94,37 @@ class VerifyOTPView(GenericAPIView):
             }, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SetCustomerNameView(APIView):
+    """
+    Called after OTP verification.
+    Sets or updates customer's full name.
+    """
+
+    def post(self, request):
+        serializer = SetNameSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        mobile = serializer.validated_data["mobile"]
+        full_name = serializer.validated_data["full_name"]
+
+        try:
+            user = User.objects.get(mobile=mobile)
+        except User.DoesNotExist:
+            return Response(
+                {"success": False, "message": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        user.full_name = full_name
+        user.save(update_fields=["full_name"])
+
+        return Response({
+            "success": True,
+            "message": "Name updated successfully",
+            "data": {
+                "id": user.id,
+                "mobile": user.mobile,
+                "full_name": user.full_name
+            }
+        }, status=status.HTTP_200_OK)
