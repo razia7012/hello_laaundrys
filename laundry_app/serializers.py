@@ -1,5 +1,66 @@
 from rest_framework import serializers
-from .models import Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, OrderItem, Laundry, Category
+from .models import Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, OrderItem, Laundry, Category, CustomerAddress
+
+GCC_COUNTRIES = [
+    "UAE",
+    "Saudi Arabia",
+    "Qatar",
+    "Kuwait",
+    "Bahrain",
+    "Oman"
+]
+
+class CustomerAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerAddress
+        fields = "__all__"
+        read_only_fields = ("user", "created_at")
+
+    def validate_country(self, value):
+        if value not in GCC_COUNTRIES:
+            raise serializers.ValidationError(
+                "Service is available only in GCC countries."
+            )
+        return value
+
+    def validate(self, data):
+        country = data.get("country")
+
+        # Qatar → Zone is mandatory
+        if country == "Qatar" and not data.get("zone"):
+            raise serializers.ValidationError({
+                "zone": "Zone is mandatory for Qatar addresses."
+            })
+
+        # UAE → Area is mandatory
+        if country == "UAE" and not data.get("area"):
+            raise serializers.ValidationError({
+                "area": "Area is mandatory for UAE addresses."
+            })
+
+        return data
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+
+        # Only one default address per user
+        if validated_data.get("is_default"):
+            CustomerAddress.objects.filter(
+                user=user, is_default=True
+            ).update(is_default=False)
+
+        validated_data["user"] = user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        user = self.context["request"].user
+
+        if validated_data.get("is_default"):
+            CustomerAddress.objects.filter(
+                user=user, is_default=True
+            ).exclude(id=instance.id).update(is_default=False)
+
+        return super().update(instance, validated_data)
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:

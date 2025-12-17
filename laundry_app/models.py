@@ -168,3 +168,45 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.item_price.item.name} x {self.quantity}"
+
+class CustomerAddress(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="addresses"
+    )
+
+    name = models.CharField(max_length=100)
+
+    # Optional alternate contact for this address
+    phone = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Alternate contact number for this address"
+    )
+
+    country = models.CharField(max_length=20)
+    city = models.CharField(max_length=100)
+
+    # GCC flexible address fields
+    zone = models.CharField(max_length=10, blank=True)        # Qatar
+    area = models.CharField(max_length=100, blank=True)      # UAE / KSA
+    street = models.CharField(max_length=100, blank=True)
+    building = models.CharField(max_length=100, blank=True)
+    apartment = models.CharField(max_length=50, blank=True)
+    pincode = models.CharField(max_length=10, blank=True)    # Optional (UAE)
+
+    address_line = models.TextField(blank=True)
+
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-is_default", "-created_at"]
+
+    def __str__(self):
+        return f"{self.country} - {self.city}"
+        

@@ -1,7 +1,7 @@
 from rest_framework import generics, status
-from .models import Service, Country, Cart, CartItem, Laundry, Category
+from .models import Service, Country, Cart, CartItem, Laundry, Category, CustomerAddress
 from .serializers import (ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, 
-    CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer, ItemWithPriceSerializer)
+    CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer, ItemWithPriceSerializer, CustomerAddressSerializer)
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
@@ -10,6 +10,47 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .pagination import StandardResultsSetPagination
 
+class CustomerAddressListCreateView(generics.ListCreateAPIView):
+    serializer_class = CustomerAddressSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_queryset(self):
+        return CustomerAddress.objects.filter(user=self.request.user)
+
+class CustomerAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CustomerAddressSerializer
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [TokenAuthentication]
+
+    def get_queryset(self):
+        return CustomerAddress.objects.filter(user=self.request.user)
+
+class SetDefaultAddressView(APIView):
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [TokenAuthentication]
+
+    def post(self, request, pk):
+        try:
+            address = CustomerAddress.objects.get(
+                pk=pk, user=request.user
+            )
+        except CustomerAddress.DoesNotExist:
+            return Response(
+                {"detail": "Address not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        CustomerAddress.objects.filter(
+            user=request.user, is_default=True
+        ).update(is_default=False)
+
+        address.is_default = True
+        address.save()
+
+        return Response(
+            {"message": "Default address set successfully"}
+        )
 
 class ServiceListAPIView(generics.ListAPIView):
     authentication_classes = [TokenAuthentication]

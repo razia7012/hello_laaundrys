@@ -13,4 +13,7 @@ urlpatterns = [
  path('order/<int:order_id>/status/', views.UpdateOrderStatusView.as_view(), name='update-order-status'),
  path('order/<int:order_id>/payment-status/', views.UpdatePaymentStatusView.as_view(), name='update-payment-status'),
  path('items/by-category/', views.ItemsByCategoryWithPriceView.as_view(), name="items-by-category-with-price"),
+ path("api/customer/addresses", views.CustomerAddressListCreateView.as_view()),
+ path("api/customer/addresses/<int:pk>", views.CustomerAddressDetailView.as_view()),
+ path("api/customer/addresses/<int:pk>/set-default", views.SetDefaultAddressView.as_view()),
 ]
