@@ -6,7 +6,9 @@ from .serializers import (ServiceSerializer, CountryWithCitiesSerializer, Laundr
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
+from rest_framework.filters import OrderingFilter
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .pagination import StandardResultsSetPagination
@@ -105,26 +107,42 @@ class LocationListView(generics.GenericAPIView):
 
 class LaundryListByCityView(generics.ListAPIView):
     authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = LaundrySerializer
     pagination_class = StandardResultsSetPagination
-    permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(manual_parameters=[
-        openapi.Parameter(
-            'city',
-            openapi.IN_QUERY,
-            description="Filter laundries by city name",
-            type=openapi.TYPE_STRING
-        )
-    ])
+    queryset = Laundry.objects.filter(is_active=True)
+
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+
+    filterset_fields = {
+        'city__name': ['icontains'],
+        'rating': ['gte', 'lte'],
+        'starting_price': ['gte', 'lte'],
+    }
+
+    ordering_fields = [
+        'rating',
+        'starting_price',
+        'created_at',
+        'name'
+    ]
+
+    ordering = ['-created_at']  
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('city__name', openapi.IN_QUERY, type=openapi.TYPE_STRING, description="City name"),
+            openapi.Parameter('rating__gte', openapi.IN_QUERY, type=openapi.TYPE_NUMBER, description="Min rating"),
+            openapi.Parameter('rating__lte', openapi.IN_QUERY, type=openapi.TYPE_NUMBER, description="Max rating"),
+            openapi.Parameter('starting_price__gte', openapi.IN_QUERY, type=openapi.TYPE_NUMBER, description="Min price"),
+            openapi.Parameter('starting_price__lte', openapi.IN_QUERY, type=openapi.TYPE_NUMBER, description="Max price"),
+            openapi.Parameter('ordering', openapi.IN_QUERY, type=openapi.TYPE_STRING,
+                              description="Sort by: rating, -rating, starting_price, -created_at"),
+        ]
+    )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
-
-    def get_queryset(self):
-        city_name = self.request.query_params.get('city')
-        if city_name:
-            return Laundry.objects.filter(city__name__icontains=city_name, is_active=True)
-        return Laundry.objects.all()
 
 class LaundryCreateView(generics.CreateAPIView):
     authentication_classes = [TokenAuthentication]
