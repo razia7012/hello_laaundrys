@@ -276,3 +276,24 @@ class ReportedIssue(models.Model):
 
     def __str__(self):
         return f"Issue by {self.customer}"
+
+class LaundryReview(models.Model):
+    customer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="laundry_reviews"
+    )
+    laundry = models.ForeignKey(
+        Laundry,
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
+    rating = models.DecimalField(max_digits=3, decimal_places=2)  # e.g., 4.5
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Review by {self.customer} for {self.laundry}"

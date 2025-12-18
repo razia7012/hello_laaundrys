@@ -1,8 +1,8 @@
 from rest_framework import generics, status
-from .models import Service, Country, Cart, CartItem, Laundry, Category, CustomerAddress, Language, SupportContact, IssueCategory
+from .models import Service, Country, Cart, CartItem, Laundry, Category, CustomerAddress, Language, SupportContact, IssueCategory, LaundryReview, Laundry
 from .serializers import (ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, 
     CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer, ItemWithPriceSerializer, CustomerAddressSerializer,
-    LanguageSerializer, SupportContactSerializer, IssueCategorySerializer, ReportIssueSerializer)
+    LanguageSerializer, SupportContactSerializer, IssueCategorySerializer, ReportIssueSerializer, LaundryReviewSerializer)
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
@@ -392,3 +392,32 @@ class ReportIssueView(APIView):
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
+class LaundryReviewListView(APIView):
+    """
+    List all reviews for a laundry
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, laundry_id):
+        reviews = LaundryReview.objects.filter(laundry_id=laundry_id)
+        serializer = LaundryReviewSerializer(reviews, many=True)
+        return Response({"success": True, "data": serializer.data})
+
+
+class LaundryReviewCreateView(APIView):
+    """
+    Add a new review for a laundry
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, laundry_id):
+        data = request.data.copy()
+        data['customer'] = request.user.id
+        data['laundry'] = laundry_id
+        serializer = LaundryReviewSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": True, "message": "Review added successfully"}, status=status.HTTP_201_CREATED)
+        return Response({"success": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

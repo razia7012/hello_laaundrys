@@ -20,4 +20,6 @@ urlpatterns = [
  path("support-contact/", views.SupportContactView.as_view(), name="support-contact"),
  path("issues/", views.IssueCategoryListView.as_view(), name="issue-list"),
  path("issues/report/", views.ReportIssueView.as_view(), name="report-issue"),
+ path("laundries/<int:laundry_id>/reviews/", views.LaundryReviewListView.as_view(), name="laundry-reviews-list"),
+ path("laundries/<int:laundry_id>/reviews/add/", views.LaundryReviewCreateView.as_view(), name="laundry-reviews-add"),
 ]

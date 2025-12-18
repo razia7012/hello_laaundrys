@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, 
-    OrderItem, Laundry, Category, CustomerAddress, Language, SupportContact, IssueCategory, ReportedIssue)
+    OrderItem, Laundry, Category, CustomerAddress, Language, SupportContact, IssueCategory, ReportedIssue, LaundryReview)
 
 GCC_COUNTRIES = [
     "UAE",
@@ -291,7 +291,6 @@ class IssueCategorySerializer(serializers.ModelSerializer):
         model = IssueCategory
         fields = ["id", "title"]
 
-
 class ReportIssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportedIssue
@@ -306,4 +305,11 @@ class ReportIssueSerializer(serializers.ModelSerializer):
                 "Please select an issue or write a custom issue."
             )
         return data
-        
+
+class LaundryReviewSerializer(serializers.ModelSerializer):
+    customer_name = serializers.CharField(source='customer.username', read_only=True)
+    
+    class Meta:
+        model = LaundryReview
+        fields = ["id", "customer", "customer_name", "laundry", "rating", "comment", "created_at"]
+        read_only_fields = ["id", "customer", "created_at"]
