@@ -25,7 +25,10 @@ class CustomerAddressListCreateView(generics.ListCreateAPIView):
     authentication_classes = [TokenAuthentication]
 
     def get_queryset(self):
-        return CustomerAddress.objects.filter(user=self.request.user)
+        user = self.request.user
+        if not user or user.is_anonymous:
+            return CustomerAddress.objects.none()
+        return CustomerAddress.objects.filter(user=user)
 
 class CustomerAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CustomerAddressSerializer
@@ -33,7 +36,10 @@ class CustomerAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = [TokenAuthentication]
 
     def get_queryset(self):
-        return CustomerAddress.objects.filter(user=self.request.user)
+        user = self.request.user
+        if not user or user.is_anonymous:
+            return CustomerAddress.objects.none()
+        return CustomerAddress.objects.filter(user=user)
 
 class SetDefaultAddressView(APIView):
     permission_classes = [IsAuthenticated]
@@ -399,6 +405,18 @@ class LaundryReviewListView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'laundry_id',
+                openapi.IN_PATH,
+                description="Laundry ID",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            )
+        ],
+        responses={200: LaundryReviewSerializer(many=True)}
+    )
     def get(self, request, laundry_id):
         reviews = LaundryReview.objects.filter(laundry_id=laundry_id)
         serializer = LaundryReviewSerializer(reviews, many=True)
