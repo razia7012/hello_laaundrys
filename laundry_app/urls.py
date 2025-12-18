@@ -18,4 +18,6 @@ urlpatterns = [
  path('customer/addresses/<int:pk>/set-default', views.SetDefaultAddressView.as_view(), name="set-default"),
  path('languages/', views.LanguageListView.as_view(), name="language-list"),
  path("support-contact/", views.SupportContactView.as_view(), name="support-contact"),
+ path("issues/", views.IssueCategoryListView.as_view(), name="issue-list"),
+ path("issues/report/", views.ReportIssueView.as_view(), name="report-issue"),
 ]

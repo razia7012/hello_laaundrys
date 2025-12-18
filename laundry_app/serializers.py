@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (Service, Country, City, Cart, CartItem, ItemPrice, Item, Order, 
-    OrderItem, Laundry, Category, CustomerAddress, Language, SupportContact)
+    OrderItem, Laundry, Category, CustomerAddress, Language, SupportContact, IssueCategory, ReportedIssue)
 
 GCC_COUNTRIES = [
     "UAE",
@@ -285,4 +285,25 @@ class SupportContactSerializer(serializers.ModelSerializer):
             "currency_code": obj.country.currency_code,
             "currency_symbol": obj.country.currency_symbol
         }
+
+class IssueCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IssueCategory
+        fields = ["id", "title"]
+
+
+class ReportIssueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReportedIssue
+        fields = ["id", "issue_category", "custom_issue"]
+
+    def validate(self, data):
+        """
+        Either issue_category OR custom_issue is required
+        """
+        if not data.get("issue_category") and not data.get("custom_issue"):
+            raise serializers.ValidationError(
+                "Please select an issue or write a custom issue."
+            )
+        return data
         

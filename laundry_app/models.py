@@ -244,4 +244,35 @@ class SupportContact(models.Model):
 
     def __str__(self):
         return f"{self.country.name} Support"
-        
+
+class IssueCategory(models.Model):
+    """
+    Predefined issues shown to customers
+    """
+    title = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+class ReportedIssue(models.Model):
+    """
+    Customer reported issue
+    """
+    customer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="reported_issues"
+    )
+    issue_category = models.ForeignKey(
+        IssueCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    custom_issue = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Issue by {self.customer}"

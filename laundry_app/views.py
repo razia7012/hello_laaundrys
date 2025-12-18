@@ -1,8 +1,8 @@
 from rest_framework import generics, status
-from .models import Service, Country, Cart, CartItem, Laundry, Category, CustomerAddress, Language, SupportContact
+from .models import Service, Country, Cart, CartItem, Laundry, Category, CustomerAddress, Language, SupportContact, IssueCategory
 from .serializers import (ServiceSerializer, CountryWithCitiesSerializer, LaundrySerializer, CartSerializer, 
     CartItemSerializer, LaundryCreateSerializer, CategorySerializer, CategoryListSerializer, ItemWithPriceSerializer, CustomerAddressSerializer,
-    LanguageSerializer, SupportContactSerializer)
+    LanguageSerializer, SupportContactSerializer, IssueCategorySerializer, ReportIssueSerializer)
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
@@ -355,3 +355,40 @@ class SupportContactView(APIView):
 
         serializer = SupportContactSerializer(support)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class IssueCategoryListView(APIView):
+    """
+    List predefined issues
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        issues = IssueCategory.objects.filter(is_active=True)
+        serializer = IssueCategorySerializer(issues, many=True)
+        return Response({
+            "success": True,
+            "data": serializer.data
+        })
+
+class ReportIssueView(APIView):
+    """
+    Report an issue (select or custom)
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ReportIssueSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(customer=request.user)
+            return Response({
+                "success": True,
+                "message": "Issue reported successfully"
+            }, status=status.HTTP_201_CREATED)
+
+        return Response({
+            "success": False,
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
