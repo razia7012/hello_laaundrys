@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from .models import OTP
+from laundry_app.models import CustomerAddress
 from .serializers import SendOTPSerializer, VerifyOTPSerializer, SetNameSerializer
 from .utils import generate_otp, send_otp, store_otp
 from django.core.cache import cache
@@ -82,6 +83,8 @@ class VerifyOTPView(GenericAPIView):
             # cache.delete(f"otp_{mobile}")
             cached_otp.delete()
 
+            has_address = user.addresses.exists()
+
             return Response({
                 "success": True,
                 "message": "Login successful.",
@@ -89,7 +92,8 @@ class VerifyOTPView(GenericAPIView):
                 "user": {
                     "mobile": user.mobile,
                     "email": user.email,
-                    "user_id": user.id
+                    "user_id": user.full_name,
+                    "address": has_address
                 }
             }, status=status.HTTP_200_OK)
 
