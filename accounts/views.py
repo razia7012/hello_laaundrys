@@ -92,7 +92,7 @@ class VerifyOTPView(GenericAPIView):
                 "user": {
                     "mobile": user.mobile,
                     "email": user.email,
-                    "user_id": user.full_name,
+                    "user_name": user.full_name,
                     "address": has_address
                 }
             }, status=status.HTTP_200_OK)
@@ -123,12 +123,16 @@ class SetCustomerNameView(APIView):
         user.full_name = full_name
         user.save(update_fields=["full_name"])
 
+        has_address = user.addresses.exists()
+
         return Response({
             "success": True,
             "message": "Name updated successfully",
             "data": {
                 "id": user.id,
                 "mobile": user.mobile,
-                "full_name": user.full_name
+                "email": user.email,
+                "user_name": user.full_name,
+                "address": has_address
             }
         }, status=status.HTTP_200_OK)
